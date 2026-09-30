@@ -1,0 +1,31 @@
+# Blueprint OPCIONAL do Render (o README também explica o passo a passo manual).
+# Os nomes dos planos (plan) mudam com o tempo: ajuste conforme o painel do Render.
+databases:
+  - name: ai-content-manager-db
+    databaseName: ai_content_manager
+    user: ai_content_manager
+    plan: free
+
+services:
+  - type: web
+    name: ai-content-manager
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ai-content-manager-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: AI_API_KEY
+        sync: false
+      - key: AI_API_URL
+        sync: false
+      - key: AI_MODEL
+        sync: false
+      - key: AI_DAILY_GENERATION_LIMIT
+        value: "20"

@@ -1,0 +1,40 @@
+# Ambiente LOCAL: aplicação (Angular + FastAPI) + PostgreSQL.
+#   cp .env.example .env   (opcional: defina SECRET_KEY e as variáveis AI_*)
+#   docker compose up --build   ->   http://localhost:8000
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres} # somente para o banco local do Docker
+      POSTGRES_DB: ai_content_manager
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ai_content_manager"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      PORT: "8000"
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@db:5432/ai_content_manager
+      SECRET_KEY: ${SECRET_KEY:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8000}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_API_URL: ${AI_API_URL:-}
+      AI_MODEL: ${AI_MODEL:-}
+      AI_DAILY_GENERATION_LIMIT: ${AI_DAILY_GENERATION_LIMIT:-20}
+      AI_TIMEOUT_SECONDS: ${AI_TIMEOUT_SECONDS:-30}
+      USAGE_TIMEZONE: ${USAGE_TIMEZONE:-America/Sao_Paulo}
+
+volumes:
+  pgdata:

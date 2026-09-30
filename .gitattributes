@@ -1,0 +1,4 @@
+* text=auto
+# Scripts de shell precisam de fim de linha LF (o container é Linux), mesmo no Windows.
+*.sh text eol=lf
+Dockerfile text eol=lf

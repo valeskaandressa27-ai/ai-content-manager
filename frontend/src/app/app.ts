@@ -1,0 +1,17 @@
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+
+import { ConfirmDialogComponent } from './shared/components/confirm-dialog.component';
+import { ToastContainerComponent } from './shared/components/toast-container.component';
+
+@Component({
+  selector: 'app-root',
+  imports: [RouterOutlet, ToastContainerComponent, ConfirmDialogComponent],
+  template: `
+    <a class="sr-only" href="#main">Ir para o conteúdo</a>
+    <router-outlet />
+    <app-toast-container />
+    <app-confirm-dialog />
+  `,
+})
+export class App {}
