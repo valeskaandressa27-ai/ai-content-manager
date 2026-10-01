@@ -21,7 +21,11 @@ def create_db_engine(settings: Settings) -> Engine:
             connect_args={"check_same_thread": False},
             poolclass=StaticPool,
         )
-    return create_engine(url, pool_pre_ping=True)
+    connect_args = {}
+    if settings.database_schema:
+        # Todas as conexões do app (e do Alembic) enxergam apenas o schema exclusivo.
+        connect_args["options"] = f"-csearch_path={settings.database_schema}"
+    return create_engine(url, pool_pre_ping=True, connect_args=connect_args)
 
 
 def create_session_factory(engine: Engine) -> sessionmaker[Session]:

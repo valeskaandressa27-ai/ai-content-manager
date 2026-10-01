@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import secrets
 from functools import lru_cache
 from pathlib import Path
@@ -31,6 +32,8 @@ class Settings(BaseSettings):
 
     environment: Literal["development", "test", "production"] = "development"
     database_url: str = ""
+    # Opcional: schema exclusivo do app (útil quando o banco é compartilhado com outro projeto).
+    database_schema: str = ""
     secret_key: str = ""
     access_token_expire_minutes: int = Field(60, ge=5, le=60 * 24 * 7)
     cors_origins: str = ""
@@ -43,6 +46,14 @@ class Settings(BaseSettings):
 
     usage_timezone: str = "America/Sao_Paulo"
     frontend_dist_dir: str = ""
+
+    @field_validator("database_schema")
+    @classmethod
+    def _validate_schema(cls, value: str) -> str:
+        # Vira identificador SQL (CREATE SCHEMA / search_path): aceita só nomes simples e seguros.
+        if value and not re.fullmatch(r"[a-z_][a-z0-9_]{0,62}", value):
+            raise ValueError("DATABASE_SCHEMA deve usar apenas letras minúsculas, números e _ (ex.: ai_content_manager).")
+        return value
 
     @field_validator("usage_timezone")
     @classmethod

@@ -155,6 +155,8 @@ alembic revision --autogenerate -m "descrição"   # nova migration após altera
 
 A URL vem de `DATABASE_URL` (formatos `postgres://` e `postgresql://` são adaptados para o driver `psycopg 3`). No container, `scripts/start.sh` roda `alembic upgrade head` antes de iniciar o Uvicorn.
 
+**Banco compartilhado com outro projeto (`DATABASE_SCHEMA`):** o Alembic registra a versão na tabela `alembic_version`. Se o banco já foi usado por outro projeto com Alembic, ela contém uma revisão que este código não conhece e o deploy falha com `Can't locate revision identified by '...'`. Para dividir o mesmo banco sem mexer no outro projeto, defina `DATABASE_SCHEMA=ai_content_manager`: o app cria esse schema (`CREATE SCHEMA IF NOT EXISTS`), e as tabelas e o `alembic_version` ficam só nele. O schema `public` e os dados do outro projeto não são alterados. Se puder, prefira um banco exclusivo para cada app. Não apague nem altere `alembic_version` manualmente.
+
 ## Docker
 
 ```bash
@@ -295,7 +297,7 @@ Arquitetura: **1 repositório GitHub → 1 Web Service (Docker) → FastAPI serv
    | `AI_API_URL` · `AI_API_KEY` · `AI_MODEL` | dados do seu provedor de IA |
    | `AI_DAILY_GENERATION_LIMIT` | `20` (ou o valor desejado) |
 
-   `CORS_ORIGINS` é opcional: como o Angular e a API são servidos pela mesma origem, não há chamadas *cross-origin*.
+   `DATABASE_SCHEMA` é opcional: use `ai_content_manager` se o banco for compartilhado com outro projeto (veja a seção Alembic). `CORS_ORIGINS` é opcional: como o Angular e a API são servidos pela mesma origem, não há chamadas *cross-origin*.
 7. **Conexão com o PostgreSQL:** basta o `DATABASE_URL` acima; o app converte `postgres://`/`postgresql://` para o driver e não guarda credenciais no código.
 8. **Migrations:** rodam automaticamente a cada início (`alembic upgrade head` em `scripts/start.sh`). Para rodar manualmente, use o *Shell* do serviço: `alembic upgrade head`.
 9. **Health check:** em *Settings → Health Check Path* informe **`/health`**.
@@ -310,6 +312,7 @@ Arquitetura: **1 repositório GitHub → 1 Web Service (Docker) → FastAPI serv
 | --- | --- | --- | --- |
 | `ENVIRONMENT` | não | `development` | `development`, `test` ou `production` |
 | `DATABASE_URL` | produção | — | URL do PostgreSQL (`postgres://` ou `postgresql://`) |
+| `DATABASE_SCHEMA` | não | vazio (`public`) | Schema exclusivo do app (ex.: `ai_content_manager`), criado automaticamente |
 | `SECRET_KEY` | produção | efêmera (dev) | Assina os JWTs (32+ caracteres em produção) |
 | `CORS_ORIGINS` | não | `http://localhost:4200` (dev) / vazio (prod) | Origens permitidas, separadas por vírgula; `*` é recusado em produção |
 | `AI_API_URL` | para gerar | — | Endpoint completo *chat completions* |

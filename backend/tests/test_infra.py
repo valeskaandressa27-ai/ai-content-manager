@@ -149,6 +149,21 @@ def test_development_generates_ephemeral_secret_when_missing():
     assert len(settings.secret_key) >= 32
 
 
+@pytest.mark.parametrize("schema", ["ai_content_manager", "app1", "_x"])
+def test_database_schema_accepts_simple_names(schema):
+    assert make_settings(database_schema=schema).database_schema == schema
+
+
+@pytest.mark.parametrize("schema", ["Public", "a-b", 'x"; DROP TABLE users; --', "a b", "1abc", "x" * 64])
+def test_database_schema_rejects_unsafe_names(schema):
+    with pytest.raises(ValidationError):
+        make_settings(database_schema=schema)
+
+
+def test_database_schema_is_optional():
+    assert make_settings().database_schema == ""
+
+
 def test_invalid_timezone_and_limit_are_rejected():
     with pytest.raises(Exception):
         make_settings(usage_timezone="Marte/Olimpo")
