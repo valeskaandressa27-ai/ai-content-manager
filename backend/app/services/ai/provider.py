@@ -60,7 +60,11 @@ class OpenAICompatibleProvider:
             logger.warning("Timeout ao chamar o provedor de IA")
             raise AITimeoutError() from exc
         except httpx.HTTPError as exc:
-            logger.warning("Falha de rede ao chamar o provedor de IA: %s", type(exc).__name__)
+            logger.warning(
+                "Falha de rede ao chamar o provedor de IA: %s: %s",
+                type(exc).__name__,
+                str(exc),
+            )
             raise AIProviderError() from exc
 
         return self._parse(response)
