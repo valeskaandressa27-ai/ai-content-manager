@@ -1,4 +1,14 @@
 # AI Content Manager
+🚀 AI Content Manager
+
+Aplicação web desenvolvida com Angular, integração com backend, PostgreSQL e inteligência artificial (Groq API), permitindo gerar conteúdos personalizados para empresas de forma automatizada.
+
+O projeto reúne desenvolvimento frontend, integração de APIs, persistência de dados e inteligência artificial em uma aplicação funcional.
+
+🌐 Acesse a demonstração: https://ai-content-manager-k6uv.onrender.com
+
+💻 Código-fonte: disponível neste repositório.
+
 
 Aplicação **full stack** para pequenos negócios criarem, organizarem e reutilizarem conteúdos de marketing com **inteligência artificial**. Projeto de portfólio com autenticação, isolamento de dados por usuário, integração com IA no backend, limite diário de gerações, testes automatizados, Docker e deploy em um único serviço no Render.
 
