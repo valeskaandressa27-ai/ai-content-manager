@@ -1,4 +1,6 @@
 # AI Content Manager
+
+![CI](https://github.com/valeskaandressa27-ai/ai-content-manager/actions/workflows/ci.yml/badge.svg)
 🚀 AI Content Manager
 
 Aplicação web desenvolvida com Angular, integração com backend, PostgreSQL e inteligência artificial (Groq API), permitindo gerar conteúdos personalizados para empresas de forma automatizada.
