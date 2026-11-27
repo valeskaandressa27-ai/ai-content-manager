@@ -357,4 +357,4 @@ Este repositório não inclui capturas de tela. Depois de rodar o projeto, salve
 - Recuperação de senha por e-mail e confirmação de e-mail.
 - Exportação de conteúdos e campanhas (PDF/CSV) e agendamento de publicações.
 - Respostas da IA em *streaming* e templates de prompt por segmento.
-- Integração contínua (GitHub Actions) rodando testes e build a cada push.
+- Rate limiting por IP para rotas públicas e métricas de uso/observabilidade.

@@ -60,10 +60,11 @@ class OpenAICompatibleProvider:
             logger.warning("Timeout ao chamar o provedor de IA")
             raise AITimeoutError() from exc
         except httpx.HTTPError as exc:
+            # Exceções HTTP podem incluir headers da requisição (inclusive Authorization).
+            # Nunca registre str(exc): isso pode vazar AI_API_KEY nos logs do provedor.
             logger.warning(
-                "Falha de rede ao chamar o provedor de IA: %s: %s",
+                "Falha de rede ao chamar o provedor de IA (%s)",
                 type(exc).__name__,
-                str(exc),
             )
             raise AIProviderError() from exc
 
