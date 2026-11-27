@@ -1,31 +1,36 @@
 # Plano de migração para Vercel
 
-## Estado
-- [x] Auditoria inicial do repositório e da arquitetura atual
-- [x] Criar branch isolada `chore/vercel-migration`
-- [ ] Validar configuração do frontend Angular como projeto estático
-- [ ] Validar FastAPI no runtime Python da Vercel
-- [ ] Confirmar URL e política de conexão do PostgreSQL atual
-- [ ] Configurar variáveis secretas sem gravá-las no Git
-- [ ] Executar migrations de forma controlada, fora do ciclo de inicialização das Functions
-- [ ] Testar autenticação, CRUD, dashboard e geração via Groq
-- [ ] Validar rotas profundas do Angular e chamadas da API
-- [ ] Publicar e só então atualizar os links públicos
+## Estado atual
+- [x] Auditoria inicial da arquitetura e dos arquivos de configuração.
+- [x] Criar branch isolada `chore/vercel-migration`.
+- [x] Criar `vercel.json` com serviços separados para Angular e FastAPI no mesmo projeto Vercel.
+- [x] Criar `backend/main.py` como entrypoint ASGI da Vercel.
+- [ ] Obter autorização da equipe/conta Vercel para criar o projeto.
+- [ ] Confirmar que o recurso Vercel Services está disponível no plano Hobby antes de publicar.
+- [ ] Validar build Angular e runtime FastAPI em preview.
+- [ ] Confirmar conectividade externa e backup do PostgreSQL atual.
+- [ ] Configurar variáveis secretas no painel da Vercel; nunca gravá-las no Git.
+- [ ] Executar migrations uma única vez, de forma controlada e após backup.
+- [ ] Testar autenticação, CRUD, dashboard e geração via Groq.
+- [ ] Validar rotas profundas do Angular, API e health check.
+- [ ] Só depois da validação, decidir se o link público será atualizado.
 
 ## Arquitetura identificada
-O deploy atual usa um único Dockerfile: compila o Angular e copia o build para o backend; o FastAPI atende tanto `/api/*` quanto os arquivos da SPA. O frontend usa `API_URL = '/api'`, portanto depende de frontend e API na mesma origem.
+O deploy atual usa um único Dockerfile: compila o Angular e copia o build para o backend; o FastAPI atende tanto `/api/*` quanto os arquivos da SPA. O frontend usa `API_URL = '/api'`, portanto as duas partes podem continuar sob a mesma origem pública.
 
-A migração prevista usa dois projetos Vercel ligados ao mesmo repositório:
-1. **Frontend**: diretório raiz `frontend`, build `npm run build`, saída Angular `dist/frontend/browser`.
-2. **Backend**: diretório raiz `backend`, dependências em `requirements.txt`; o FastAPI exporta `app` em `app/main.py`, caminho reconhecido pelo runtime Python da Vercel.
+A branch de migração contém uma configuração Vercel Services com um único projeto e dois serviços:
+1. **Frontend**: raiz `frontend/`; a Vercel deve detectar Angular pelo `angular.json` e `package.json`.
+2. **Backend**: raiz `backend/`; `requirements.txt` já está nessa pasta e `main.py` expõe `app` importando a aplicação existente de `app.main`.
 
-A separação exige configurar a URL pública da API no build Angular e liberar a origem do frontend em `CORS_ORIGINS`. A API não deve tentar servir os arquivos estáticos do Angular no novo arranjo.
+O `vercel.json` roteia `/api/*` e `/health` para o serviço backend e o restante para o frontend. Isso mantém a API em `/api` na mesma origem e evita introduzir CORS entre dois domínios. A configuração segue o padrão de múltiplos serviços documentado pela Vercel; a disponibilidade do recurso no plano Hobby ainda precisa ser confirmada na conta antes de depender dele.
 
 ## Banco de dados e segurança
-- Manter o PostgreSQL atual durante a primeira etapa; não criar nem apagar banco sem verificar provedor, plano, expiração, backup e URL de conexão.
-- Não executar `alembic upgrade head` automaticamente a cada inicialização de Function. As migrations devem ser executadas uma única vez, após backup e validação do alvo.
-- Configurar `DATABASE_URL`, `SECRET_KEY`, `AI_API_URL`, `AI_API_KEY`, `AI_MODEL` e `CORS_ORIGINS` no painel da Vercel; nunca versionar valores secretos.
-- Verificar suporte a conexões externas e, se necessário, usar a URL/pooler recomendado pelo provedor do PostgreSQL.
+- O PostgreSQL atual no Render está disponível, no plano gratuito, com expiração informada para **26/12/2026**. Isso torna a migração de banco um item prioritário; não significa que os dados já foram copiados.
+- Manter o banco original intacto. Não executar migrations, alterações de schema, cópia ou exclusão até confirmar backup, URL externa e destino.
+- O banco está na região Oregon. Precisamos validar conexão externa a partir da Vercel e latência; a URL interna do Render não deve ser presumida acessível fora do Render.
+- Não executar `alembic upgrade head` a cada inicialização de Function. As migrations devem ser executadas uma única vez, após backup e validação do alvo.
+- Configurar `DATABASE_URL`, `SECRET_KEY`, `AI_API_URL`, `AI_API_KEY`, `AI_MODEL` e, se necessário, `CORS_ORIGINS` no painel da Vercel; nunca versionar valores secretos.
+- A aplicação exige `SECRET_KEY` com pelo menos 32 caracteres e `DATABASE_URL` em produção. As variáveis de IA são necessárias para a geração de conteúdo.
 
 ## Critério de conclusão
-A migração só será considerada concluída depois de os dois projetos estarem publicados e testados com o banco correto, login/cadastro, operações de conteúdo/campanha, dashboard e integração Groq. O serviço do Render permanece intacto até a validação final.
+A migração só será considerada concluída depois de o projeto estar publicado e testado com o banco correto, login/cadastro, operações de conteúdo/campanha, dashboard e integração Groq. O serviço e o banco no Render permanecem intactos até a validação final e decisão explícita da usuária.
